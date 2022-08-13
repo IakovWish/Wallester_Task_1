@@ -34,7 +34,7 @@ func AllCustomers() ([]Customer, error) {
 			&customer.Id,
 			&customer.First_name,
 			&customer.Last_name,
-			//&customer.Birth_date,
+			&customer.Birth_date,
 			&customer.Gender,
 			&customer.E_mail,
 			&customer.Address)
@@ -62,7 +62,7 @@ func OneCustomer(r *http.Request) (Customer, error) {
 		&customer.Id,
 		&customer.First_name,
 		&customer.Last_name,
-		//&customer.Birth_date,
+		&customer.Birth_date,
 		&customer.Gender,
 		&customer.E_mail,
 		&customer.Address)
@@ -79,19 +79,30 @@ func PutCustomer(r *http.Request) (Customer, error) {
 	customer := Customer{}
 	customer.First_name = r.FormValue("first_name")
 	customer.Last_name = r.FormValue("last_name")
-	//customer.Birth_date = r.FormValue("birth_date")
+	convert_date := r.FormValue("birth_date")
 	customer.Gender = r.FormValue("gender")
 	customer.E_mail = r.FormValue("e_mail")
 	customer.Address = r.FormValue("address")
 
 	// validate form values
-	if customer.First_name == "" || customer.Last_name == "" || customer.Gender == "" || customer.E_mail == "" /*customer.Birth_date == ""*/ {
+	if customer.First_name == "" || customer.Last_name == "" || customer.Gender == "" || customer.E_mail == "" || convert_date == "" {
 		return customer, errors.New("400. Bad request. All fields must be complete.") // appart from Address
 	}
 
+	dateString := "2006-01-02"
+	date_res, err := time.Parse(dateString, convert_date)
+	if err != nil {
+		panic(err)
+	}
+	customer.Birth_date = date_res
+
+	if age(customer.Birth_date, time.Now()) < 18 || age(customer.Birth_date, time.Now()) > 60 {
+		return customer, errors.New("400. Bad request. Age must befrom 18 till 60 years.")
+	}
+
 	// insert values
-	_, err := configs.DB.Exec("INSERT INTO customers (first_name, last_name, gender, e_mail, address) VALUES ($1, $2, $3, $4, $5)",
-		customer.First_name, customer.Last_name /*customer.Birth_date,*/, customer.Gender, customer.E_mail, customer.Address)
+	_, err = configs.DB.Exec("INSERT INTO customers (first_name, last_name, birth_date, gender, e_mail, address) VALUES ($1, $2, $3, $4, $5, $6)",
+		customer.First_name, customer.Last_name, customer.Birth_date, customer.Gender, customer.E_mail, customer.Address)
 
 	if err != nil {
 		return customer, errors.New("500. Internal Server Error." + err.Error())
@@ -104,24 +115,35 @@ func EditCustomer(r *http.Request) (Customer, error) {
 	// get form values
 	customer := Customer{}
 
-	i := r.FormValue("id")
+	convert_id := r.FormValue("id")
 	customer.First_name = r.FormValue("first_name")
 	customer.Last_name = r.FormValue("last_name")
-	//customer.Birth_date = r.FormValue("birth_date")
+	convert_date := r.FormValue("birth_date")
 	customer.Gender = r.FormValue("gender")
 	customer.E_mail = r.FormValue("e_mail")
 	customer.Address = r.FormValue("address")
 
-	if customer.First_name == "" || customer.Last_name == "" || customer.Gender == "" || customer.E_mail == "" /*customer.Birth_date == ""*/ {
+	if customer.First_name == "" || customer.Last_name == "" || customer.Gender == "" || customer.E_mail == "" || convert_date == "" {
 		return customer, errors.New("400. Bad request. All fields must be complete.") // appart from Address
 	}
 
 	// convert form values
-	res, err := strconv.Atoi(i)
+	id_res, err := strconv.Atoi(convert_id)
 	if err != nil {
 		panic(err)
 	}
-	customer.Id = res
+	customer.Id = id_res
+
+	dateString := "2006-01-02"
+	date_res, err := time.Parse(dateString, convert_date)
+	if err != nil {
+		panic(err)
+	}
+	customer.Birth_date = date_res
+
+	if age(customer.Birth_date, time.Now()) < 18 || age(customer.Birth_date, time.Now()) > 60 {
+		return customer, errors.New("400. Bad request. Age must befrom 18 till 60 years.")
+	}
 
 	// insert values
 	_, err = configs.DB.Exec("UPDATE customers SET first_name = $1, last_name = $2, gender = $3, e_mail = $4, address = $5 where id = $6",
@@ -144,4 +166,21 @@ func DeleteCustomer(r *http.Request) error {
 		return errors.New("500. Internal Server Error")
 	}
 	return nil
+}
+
+func age(birthdate, today time.Time) int {
+	today = today.In(birthdate.Location())
+	ty, tm, td := today.Date()
+	today = time.Date(ty, tm, td, 0, 0, 0, 0, time.UTC)
+	by, bm, bd := birthdate.Date()
+	birthdate = time.Date(by, bm, bd, 0, 0, 0, 0, time.UTC)
+	if today.Before(birthdate) {
+		return 0
+	}
+	age := ty - by
+	anniversary := birthdate.AddDate(age, 0, 0)
+	if anniversary.After(today) {
+		age--
+	}
+	return age
 }
