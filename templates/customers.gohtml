@@ -16,7 +16,7 @@
             align-items: left;
             height: 100vh;
         }
-        p, table, th, td {
+        p, table, th, td, form {
             margin-left: 4rem;
             font-size: 2rem;
             color: black;
@@ -38,9 +38,9 @@
 
 <table>
     <tr>
-        <th>Id</th>
-        <th>First name</th>
-        <th>Last name</th>
+        <th><a href="/customers/order?ord=id">Id</a></th>
+        <th><a href="/customers/order?ord=first_name">First name</a></th>
+        <th><a href="/customers/order?ord=last_name">Last name</a></th>
     </tr>
     {{ range .}}
         <tr>

@@ -85,6 +85,40 @@ func SearchedCustomers(r *http.Request) ([]Customer, error) {
 	return customers_arr, nil
 }
 
+func OrderedCustomers(r *http.Request) ([]Customer, error) {
+	customers_arr := make([]Customer, 0)
+	if r.FormValue("ord") == "" {
+		return customers_arr, errors.New("400. Bad Request")
+	}
+
+	rows, err := configs.DB.Query("SELECT * FROM customers ORDER BY " + r.FormValue("ord") + ";")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	customers_arr = make([]Customer, 0)
+	for rows.Next() {
+		customer := Customer{}
+		err := rows.Scan(
+			&customer.Id,
+			&customer.First_name,
+			&customer.Last_name,
+			&customer.Birth_date,
+			&customer.Gender,
+			&customer.E_mail,
+			&customer.Address)
+		if err != nil {
+			return nil, err
+		}
+		customers_arr = append(customers_arr, customer)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return customers_arr, nil
+}
+
 func OneCustomer(r *http.Request) (Customer, error) {
 	customer := Customer{}
 	id := r.FormValue("id")
