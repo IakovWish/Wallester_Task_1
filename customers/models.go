@@ -21,21 +21,6 @@ type Customer struct {
 }
 
 func AllCustomers(r *http.Request) ([]Customer, error) {
-	//var query string
-	//fmt.Println(r.FormValue("srch_first"))
-	//fmt.Println(r.FormValue("srch_last"))
-	// if r.FormValue("srch_first") == "" && r.FormValue("srch_last") == "" {
-	// 	fmt.Println("1")
-	// 	query = "SELECT * FROM customers"
-	// } else if r.FormValue("srch_first") != "" && r.FormValue("srch_last") != "" {
-	// 	fmt.Println("2")
-	// 	query = "SELECT * FROM customers WHERE first_name = " + r.FormValue("srch_first") + "AND last_name = " + r.FormValue("srch_last") + ";"
-	// } else {
-	// 	fmt.Println("3")
-	// }
-
-	//fmt.Println(query)
-
 	rows, err := configs.DB.Query("SELECT * FROM customers")
 	if err != nil {
 		return nil, err
