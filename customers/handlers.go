@@ -13,13 +13,29 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	customers_arr, err := AllCustomers()
+	customers_arr, err := AllCustomers(r)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
 	configs.TPL.ExecuteTemplate(w, "customers.gohtml", customers_arr)
+}
+
+func Search(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+
+	customers_arr, err := SearchedCustomers(r)
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	configs.TPL.ExecuteTemplate(w, "customers.gohtml", customers_arr)
+
 }
 
 func Show(w http.ResponseWriter, r *http.Request) {

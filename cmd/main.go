@@ -9,6 +9,7 @@ import (
 func main() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/customers", customers.Index)
+	http.HandleFunc("/customers/search", customers.Search)
 	http.HandleFunc("/customers/show", customers.Show)
 	http.HandleFunc("/customers/create", customers.Create)
 	http.HandleFunc("/customers/create/process", customers.CreateProcess)
