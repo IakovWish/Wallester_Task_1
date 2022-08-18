@@ -1,6 +1,39 @@
 <!doctype html>
 <html lang="en">
 <head>
+
+    <script>
+        function $_GET(key) {
+        var p = window.location.search;
+        p = p.match(new RegExp(key + '=([^&=]+)'));
+        return p ? p[1] : false;
+        }
+
+        document.addEventListener('DOMContentLoaded', init, false);
+
+        async function init() {
+            document.querySelector('#nextButton').addEventListener('click', nextPage, false);
+            document.querySelector('#prevButton').addEventListener('click', previousPage, false);
+        }
+
+        function previousPage() {
+            var curPage = $_GET('page')
+            if(curPage > 1) curPage--;
+            var ord = $_GET('ord')
+            var param1 = '/customers/order?ord=' + ord + '&page=' + curPage;
+            window.location = param1;
+        }
+
+        function nextPage() {
+            var curPage = $_GET('page')
+            curPage++
+            var ord = $_GET('ord')
+            var param1 = '/customers/order?ord=' + ord + '&page=' + curPage;
+            window.location = param1;
+        }
+        
+    </script>
+
     <meta charset="UTF-8">
     <title>Create Customer</title>
     <style>
@@ -13,21 +46,25 @@
             display: flex;
             flex-flow: column nowrap;
             justify-content: center;
-            align-items: left;
+            align-items: center;
             height: 100vh;
         }
         p, table, th, td, form {
             margin-left: 4rem;
             font-size: 2rem;
             color: black;
-          }
+        }
+        th {
+            padding: 15px;
+        }
+
         .link {
             font-size: 1rem;
         }
     </style>
 </head>
 <body>
-
+    
     <form method="post" action="/customers/search">
         <input type="text" name="srch_first" placeholder="srch_first">
         <input type="text" name="srch_last" placeholder="srch_last">  
@@ -36,11 +73,11 @@
     </form>
     <p class="link"><a href="/customers">All Customer</a></p>
 
-<table>
+<table id="tableID">
     <tr>
-        <th><a href="/customers/order?ord=id">Id</a></th>
-        <th><a href="/customers/order?ord=first_name">First name</a></th>
-        <th><a href="/customers/order?ord=last_name">Last name</a></th>
+        <th><a href="/customers/order?ord=id&page=1">Id</a></th>
+        <th><a href="/customers/order?ord=first_name&page=1">First name</a></th>
+        <th><a href="/customers/order?ord=last_name&page=1">Last name</a></th>
     </tr>
     {{ range .}}
         <tr>
@@ -53,6 +90,11 @@
     {{ end}}
 </table>
 
+<button id="prevButton">Previous</button>
+<button id="nextButton">Next</button>
+
 <p class="link"><a href="/customers/create">Insert A Customer</a></p>
 </body>
 </html>
+
+

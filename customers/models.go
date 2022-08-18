@@ -2,8 +2,9 @@ package customers
 
 import (
 	"errors"
+	"fmt"
+	"math"
 	"net/http"
-
 	"strconv"
 	"time"
 
@@ -91,7 +92,37 @@ func OrderedCustomers(r *http.Request) ([]Customer, error) {
 		return customers_arr, errors.New("400. Bad Request")
 	}
 
-	rows, err := configs.DB.Query("SELECT * FROM customers ORDER BY " + r.FormValue("ord") + ";")
+	page, err := strconv.Atoi(r.FormValue("page"))
+	if err != nil {
+		panic(err)
+	}
+
+	rows1, err := configs.DB.Query("SELECT COUNT(*) FROM customers")
+	if err != nil {
+		return nil, err
+	}
+	defer rows1.Close()
+
+	var length int
+	for rows1.Next() {
+		err1 := rows1.Scan(
+			&length)
+		if err != nil {
+			return nil, err1
+		}
+	}
+
+	var offset string
+
+	if page > length/4 {
+		last_page := int(math.Ceil(float64(length / 4)))
+		offset = strconv.Itoa((last_page * 4))
+		fmt.Println(last_page)
+	} else {
+		offset = strconv.Itoa((page - 1) * 4)
+	}
+
+	rows, err := configs.DB.Query("SELECT * FROM customers ORDER BY " + r.FormValue("ord") + " LIMIT 4 OFFSET " + offset)
 	if err != nil {
 		return nil, err
 	}
