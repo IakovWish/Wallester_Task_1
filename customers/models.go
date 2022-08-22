@@ -3,7 +3,6 @@ package customers
 import (
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -22,13 +21,44 @@ type Customer struct {
 }
 
 func AllCustomers(r *http.Request) ([]Customer, error) {
-	rows, err := configs.DB.Query("SELECT * FROM customers")
+
+	customers_arr := make([]Customer, 0)
+
+	if r.FormValue("ord") == "" {
+		return nil, errors.New("400. Bad Request")
+	}
+
+	page, err := strconv.Atoi(r.FormValue("page"))
+	if err != nil {
+		return nil, errors.New("400. Bad Request")
+	}
+
+	// rows1, err := configs.DB.Query("SELECT COUNT(*) FROM customers")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer rows1.Close()
+
+	// var length int
+	// for rows1.Next() {
+	// 	err1 := rows1.Scan(&length)
+	// 	if err != nil {
+	// 		return nil, err1
+	// 	}
+	// }
+
+	// if page > length/4 {
+	// 	return customers_arr, nil // add error
+	// }
+
+	offset := strconv.Itoa((page - 1) * 4)
+
+	rows, err := configs.DB.Query("SELECT * FROM customers ORDER BY " + r.FormValue("ord") + " LIMIT 4 OFFSET " + offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	customers_arr := make([]Customer, 0)
 	for rows.Next() {
 		customer := Customer{}
 		err := rows.Scan(
@@ -47,6 +77,11 @@ func AllCustomers(r *http.Request) ([]Customer, error) {
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
+
+	if len(customers_arr) == 0 {
+		return customers_arr, errors.New("page is not available")
+	}
+
 	return customers_arr, nil
 }
 
@@ -59,70 +94,6 @@ func SearchedCustomers(r *http.Request) ([]Customer, error) {
 
 	rows, err := configs.DB.Query("SELECT * FROM customers WHERE first_name = $1 AND last_name = $2;",
 		r.FormValue("srch_first"), r.FormValue("srch_last"))
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	customers_arr = make([]Customer, 0)
-	for rows.Next() {
-		customer := Customer{}
-		err := rows.Scan(
-			&customer.Id,
-			&customer.First_name,
-			&customer.Last_name,
-			&customer.Birth_date,
-			&customer.Gender,
-			&customer.E_mail,
-			&customer.Address)
-		if err != nil {
-			return nil, err
-		}
-		customers_arr = append(customers_arr, customer)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return customers_arr, nil
-}
-
-func OrderedCustomers(r *http.Request) ([]Customer, error) {
-	customers_arr := make([]Customer, 0)
-	if r.FormValue("ord") == "" {
-		return customers_arr, errors.New("400. Bad Request")
-	}
-
-	page, err := strconv.Atoi(r.FormValue("page"))
-	if err != nil {
-		panic(err)
-	}
-
-	rows1, err := configs.DB.Query("SELECT COUNT(*) FROM customers")
-	if err != nil {
-		return nil, err
-	}
-	defer rows1.Close()
-
-	var length int
-	for rows1.Next() {
-		err1 := rows1.Scan(
-			&length)
-		if err != nil {
-			return nil, err1
-		}
-	}
-
-	var offset string
-
-	if page > length/4 {
-		last_page := int(math.Ceil(float64(length / 4)))
-		offset = strconv.Itoa((last_page * 4))
-		fmt.Println(last_page)
-	} else {
-		offset = strconv.Itoa((page - 1) * 4)
-	}
-
-	rows, err := configs.DB.Query("SELECT * FROM customers ORDER BY " + r.FormValue("ord") + " LIMIT 4 OFFSET " + offset)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +158,7 @@ func PutCustomer(r *http.Request) (Customer, error) {
 
 	// validate form values
 	if customer.First_name == "" || customer.Last_name == "" || customer.Gender == "" || customer.E_mail == "" || convert_date == "" {
-		return customer, errors.New("400. Bad request. All fields must be complete") // appart from Address
+		return customer, errors.New("400. Bad request. all fields except the address must be filled")
 	}
 
 	dateString := "2006-01-02"
@@ -196,6 +167,8 @@ func PutCustomer(r *http.Request) (Customer, error) {
 		panic(err)
 	}
 	customer.Birth_date = date_res
+
+	fmt.Println(customer.Birth_date)
 
 	if age(customer.Birth_date, time.Now()) < 18 || age(customer.Birth_date, time.Now()) > 60 {
 		return customer, errors.New("400. Bad request. Age must befrom 18 till 60 years")
@@ -230,7 +203,7 @@ func EditCustomer(r *http.Request) (Customer, error) {
 	// convert form values
 	id_res, err := strconv.Atoi(convert_id)
 	if err != nil {
-		panic(err)
+		return customer, errors.New("400. Bad Request")
 	}
 	customer.Id = id_res
 

@@ -28,7 +28,7 @@
 
 <h1>Edit A Customer</h1>
 <form method="post" action="/customers/edit/process">
-    <input type="text" name="id" placeholder="id" required value="{{.Id}}">
+    <input type="text" readonly name="id" placeholder="id" required value="{{.Id}}">
     <input type="text" name="first_name" placeholder="first_name" required autofocus value="{{.First_name}}">
     <input type="text" name="last_name" placeholder="last_name" required value="{{.Last_name}}">
     <input type="date" name="birth_date" required value="{{.Birth_date}}">

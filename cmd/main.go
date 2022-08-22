@@ -10,7 +10,6 @@ func main() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/customers", customers.Index)
 	http.HandleFunc("/customers/search", customers.Search)
-	http.HandleFunc("/customers/order", customers.Order)
 	http.HandleFunc("/customers/show", customers.Show)
 	http.HandleFunc("/customers/create", customers.Create)
 	http.HandleFunc("/customers/create/process", customers.CreateProcess)
@@ -21,5 +20,12 @@ func main() {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/customers", http.StatusSeeOther)
+	http.Redirect(w, r, "/customers?ord=id&page=1", http.StatusSeeOther)
 }
+
+/* TODO:
+- Pagination still work with errors
+-
+
+
+*/

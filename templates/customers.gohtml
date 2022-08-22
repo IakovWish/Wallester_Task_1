@@ -20,15 +20,16 @@
             var curPage = $_GET('page')
             if(curPage > 1) curPage--;
             var ord = $_GET('ord')
-            var param1 = '/customers/order?ord=' + ord + '&page=' + curPage;
+            var param1 = '/customers?ord=' + ord + '&page=' + curPage;
             window.location = param1;
         }
 
         function nextPage() {
             var curPage = $_GET('page')
+            //if((curPage * pageSize) < length) curPage++;
             curPage++
             var ord = $_GET('ord')
-            var param1 = '/customers/order?ord=' + ord + '&page=' + curPage;
+            var param1 = '/customers?ord=' + ord + '&page=' + curPage;
             window.location = param1;
         }
         
@@ -71,13 +72,13 @@
     
         <input type="submit">
     </form>
-    <p class="link"><a href="/customers">All Customer</a></p>
+    <p class="link"><a href="/customers?ord=id&page=1">All Customer</a></p>
 
 <table id="tableID">
     <tr>
-        <th><a href="/customers/order?ord=id&page=1">Id</a></th>
-        <th><a href="/customers/order?ord=first_name&page=1">First name</a></th>
-        <th><a href="/customers/order?ord=last_name&page=1">Last name</a></th>
+        <th><a href="/customers?ord=id&page=1">Id</a></th>
+        <th><a href="/customers?ord=first_name&page=1">First name</a></th>
+        <th><a href="/customers?ord=last_name&page=1">Last name</a></th>
     </tr>
     {{ range .}}
         <tr>
@@ -96,5 +97,3 @@
 <p class="link"><a href="/customers/create">Insert A Customer</a></p>
 </body>
 </html>
-
-

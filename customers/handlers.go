@@ -10,13 +10,18 @@ import (
 func Index(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != "GET" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
 	customers_arr, err := AllCustomers(r)
+
 	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		if err.Error() == "page is not available" {
+			http.Redirect(w, r, "/customers?ord=id&page=1", http.StatusSeeOther)
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -25,28 +30,13 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 func Search(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
 	customers_arr, err := SearchedCustomers(r)
 	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
-
-	configs.TPL.ExecuteTemplate(w, "customers.gohtml", customers_arr)
-}
-
-func Order(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-		return
-	}
-
-	customers_arr, err := OrderedCustomers(r)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -55,7 +45,7 @@ func Order(w http.ResponseWriter, r *http.Request) {
 
 func Show(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -65,7 +55,7 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	case err != nil:
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -78,22 +68,22 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 func CreateProcess(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
 	_, err := PutCustomer(r)
 	if err != nil {
-		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
+		http.Error(w, err.Error(), http.StatusNotAcceptable)
 		return
 	}
 
-	http.Redirect(w, r, "/customers", http.StatusSeeOther)
+	http.Redirect(w, r, "/customers?ord=id&page=1", http.StatusSeeOther)
 }
 
 func Edit(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -103,7 +93,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	case err != nil:
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -112,30 +102,30 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 
 func EditProcess(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
 	_, err := EditCustomer(r)
 	if err != nil {
-		http.Error(w, http.StatusText(406), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/customers", http.StatusSeeOther)
+	http.Redirect(w, r, "/customers?ord=id&page=1", http.StatusSeeOther)
 }
 
 func DeleteProcess(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
 	err := DeleteCustomer(r)
 	if err != nil {
-		http.Error(w, http.StatusText(400), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/customers", http.StatusSeeOther)
+	http.Redirect(w, r, "/customers?ord=id&page=1", http.StatusSeeOther)
 }
